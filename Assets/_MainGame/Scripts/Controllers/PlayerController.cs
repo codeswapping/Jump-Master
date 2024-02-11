@@ -37,7 +37,6 @@ public class PlayerController : MonoBehaviour
 
     //Game cycle variables
     private bool isStarted = false;             //Flag to set when game is started.
-    private bool isFirst = true;                //Used to ingnore collision first time game is started.
     private bool isGameOver = false;            //Indicate if game is over.
     private int currentScore = 0;               //Store current Score.
     private int maxScore;                       //Last max score.
@@ -47,7 +46,6 @@ public class PlayerController : MonoBehaviour
     private void Awake()
     {
         //Setup game scene
-
         maxScore = PlayerPrefs.GetInt("MaxScore", 0);                                   //Get Max Score.
         mainCam = Camera.main;                                                          //Get camera reference. Requires "MainCamera" tag on gameobject with Camera component is attached.
         playerRb = GetComponent<Rigidbody>();                                           //Get player rigidbody
@@ -160,45 +158,27 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    private void OnCollisionEnter(Collision c)
-    {
-        if (c.contacts.Length > 0)
-        {
-            if(isFirst)
-            {
-                isFirst = false;
-                return;
-            }
-            // Get the normal of the collision contact point
-            Vector3 normal = c.contacts[0].normal;
-            var xDiff = Mathf.Abs( Mathf.Abs(c.transform.position.x) - Mathf.Abs(transform.position.x));
-            // Check if the collision is happening from above (e.g., normal pointing upwards) and xDiff is less than 1.98, if this condition is true, then we consider player is on the platform.
-            if (normal.y > 0.5f && xDiff < 1.98f)
-            {
-                SetPlayerOnPlatform();
-            }   
-        }
-    }
-
     private void OnCollisionStay(Collision c)
     {
         if(c.contactCount > 0)
         {
             Vector3 normal = c.contacts[0].normal;
-            var xDiff = Mathf.Abs( Mathf.Abs(c.transform.position.x) - Mathf.Abs(transform.position.x));
+            var xDiff = Mathf.Abs( Mathf.Abs(c.transform.position.x) - Mathf.Abs(transform.position.x));        //Get X position difference between platform center and
             var pos = c.transform.position;
             //If player is on the platform, but condition is not satisfied because of any error, we will check it here again to stop game from stuck at this stage. 
-            var onPlatform = normal.y >= 0.5f && xDiff < 1.98f;
-            if(isOnPlatform)
+            var onPlatform = normal.y >= 0.5f && xDiff < 1.98f;     //Set temp flag true if player sphere is on the platform correctly else set false.
+            //If isOnPlatform is true, but onPlatform flag is false then we set isOnPlatfom to false as player is no longer on the platform.
+            if(isOnPlatform)                                        
             {
                 if(!onPlatform)
                 {
                     isOnPlatform = false;
                 }
             }
+            //If isOnPlatform is false and onPlatform is true, then set isOnPlatform to true and reset other parameters.
             else 
             {
-                if(isOnPlatform)
+                if(onPlatform)
                 {
                     SetPlayerOnPlatform();
                 }
@@ -241,20 +221,22 @@ public class PlayerController : MonoBehaviour
         //Functionality to generate next platform
         var previous = currentPlatformIndex;                                                    //Store current index of platform.
         currentPlatformIndex ^= 1;                                                              //Swap platform index.
-        
         int dir = (Random.Range(0, 2) == 0) ? -1 : 1;                                           //Whether to place next platform on right side or left side, -1 left, 1 right
+
+        //Calculate X position
         var currentX = platforms[currentPlatformIndex].transform.position.x;                    //Set current platform X in local variable.
         float xPos = Random.Range(1, maxPlaformX) * dir;                                        //Random X position for platform
         xPos = Mathf.Clamp(xPos, currentX - maxPlaformX, maxPlaformX + currentX);               //Clamp X position to be within max and min;
         var diff = Mathf.Abs(Mathf.Abs(xPos) - Mathf.Abs(currentX));                            //Check difference between new X position and current platform x position.
         if(diff < 5)                                                                            //If difference is less than 5, then calculate x position again to avoid next platform to place exactly about current platform.
             xPos += currentX + 4 * dir;
-        
+
+        //Calculate Y position
         float randomHeight = Random.Range(minPlatformY, maxPlatformY);                          //Random height for next platform.
         float yPos = randomHeight + platforms[currentPlatformIndex].transform.position.y;       //Calculate Y position for next platform.
         platforms[previous].transform.position = new Vector3(xPos,yPos);                        //Set position of next platform.
-        gameOverYPos = transform.position.y - 3f;
-        platforms[previous].enabled = true;          // Set gameover point position.
+        gameOverYPos = transform.position.y - 3f;                                               // Set gameover point position.
+        platforms[previous].enabled = true;                                                     // Eanble platform collider.
     }
 #endregion
 

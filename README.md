@@ -1,5 +1,5 @@
 # Jump-Master
-Jumping platform game with spring like physics for jump
+Jumping on platform game with spring like physics for jump
 
 # Intro
 
@@ -37,19 +37,16 @@ Main Functions
 2) Update()
      Used to check user input.
 
-3) OnCollisionEnter(Collision c)
-   Called when player collides with any platform collider. It checks for and validate player position on the platform if it meets the condition to stand on the platform.
-
-4) OnCollisionStay(Collision c)
+3) OnCollisionStay(Collision c)
    Called every frame when player is on the platform collider. But only requires if OnCollisionEnter method is failed due to precision error.
 
-5) SetPlayerOnPlatform()
+4) SetPlayerOnPlatform()
    When player hits a platform and it is on valid position, This method is called from either OnCollisionStay or OnCollisionEnter to reset player gameobject so that user can start input again.
 
-6) UpdateScoreUI()
+5) UpdateScoreUI()
    Update current user score on the UI.
 
-7) GenerateNextPlatform()
+6) GenerateNextPlatform()
    Generates new platform above player's current platform.
 
 # GameData.cs
